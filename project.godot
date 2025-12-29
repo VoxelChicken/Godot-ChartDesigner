@@ -13,4 +13,9 @@ config_version=5
 config/name="Line Graph Add-On Development Playroom"
 run/main_scene="uid://cvssydjc18g22"
 config/features=PackedStringArray("4.5", "Forward Plus")
-config/icon="res://icon.svg"
+config/icon="uid://c8tsvu3p3tpr6"
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
