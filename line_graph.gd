@@ -15,6 +15,8 @@ func _draw() -> void:
 	var x_size := get_rect().size.x
 	var y_size := get_rect().size.y
 	var helper_var: int
+	var smallest_value: float
+	var biggest_value: float
 	
 	var x_increment = x_size / (total_point_count - 1)
 	
@@ -24,3 +26,15 @@ func _draw() -> void:
 	for i in total_point_count:
 		helper_var += x_increment * i
 		vector2_array[i].x = helper_var
+	
+	smallest_value = values[0] # This is for the iteration of the array to work well. This makes the 'smallest_value' NOT be 0.
+	for value in values:
+		if value > biggest_value:
+			biggest_value = value
+		if value < smallest_value:
+			smallest_value = value
+		
+	print("max:")
+	print(biggest_value)
+	print("min:")
+	print(smallest_value)
