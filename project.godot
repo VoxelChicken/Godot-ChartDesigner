@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Line Graph Add-On Development Playroom"
+config/name="Line Graph Add-On"
 run/main_scene="uid://cvssydjc18g22"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="uid://c8tsvu3p3tpr6"

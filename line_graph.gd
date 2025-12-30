@@ -42,22 +42,22 @@ func _init() -> void:
 	resized.connect(queue_redraw)
 
 func _draw() -> void:
-	var total_point_count := float(len(values))
+	var total_point_count := len(values)
 	var x_size := get_rect().size.x
 	var y_size := get_rect().size.y
-	var min: float # 'Min' is short for 'minimum' and is the smallest amount in the 'values' array.
-	var max: float # 'Max' is short for 'maximum' and is the largest amount in the 'values' array.
+	var min_val: float # 'Min' is short for 'minimum value' and is the smallest value in the 'values' array.
+	var max_val: float # 'Max' is short for 'maximum value' and is the largest value in the 'values' array.
 	
 	var vector2_array: PackedVector2Array
 	vector2_array.resize(total_point_count)
 	
-	min = values[0] # This is for the iteration of the array to work well. This makes the 'smallest_value' NOT be 0.
+	min_val = values[0] # This is for the iteration of the array to work well. This makes the 'min_val' NOT be 0.
 	for value in values:
-		if value > max:
-			max = value
-		if value < min:
-			min = value
-		# The for loop above cycles through the array 'values' and assigns 'min' and 'max' accordingly. (Declaration of the variables in the code above)
+		if value > max_val:
+			max_val = value
+		if value < min_val:
+			min_val = value
+		# The for loop above cycles through the array 'values' and assigns 'min_val' and 'max_val' accordingly. (Declaration of the variables in the code above)
 	
 	
 	match type:
@@ -68,7 +68,7 @@ func _draw() -> void:
 				for i in total_point_count:
 					vector2_array[i] = Vector2(
 						x_increment * i, # x value
-						y_size - (y_size / max * values[i]) # y value
+						y_size - (y_size / max_val * values[i]) # y value
 						)
 				draw_polyline(vector2_array, color, width, antialiasing)
 			else:
@@ -79,7 +79,7 @@ func _draw() -> void:
 			for i in total_point_count:
 					vector2_array[i] = Vector2(
 						x_increment * i + (width / 2), # x value
-						y_size - (y_size / max * values[i]) # y value
+						y_size - (y_size / max_val * values[i]) # y value
 						)
 					draw_line(vector2_array[i], Vector2(vector2_array[i].x, y_size), color, width, antialiasing)
 		
@@ -87,7 +87,7 @@ func _draw() -> void:
 			var y_increment = (y_size - width) / (total_point_count - 1)
 			for i in total_point_count:
 				vector2_array[i] = Vector2(
-					x_size - (x_size / max * values[i]),
-					y_increment * i + (width / 2)
+					x_size - (x_size / max_val * values[i]), # x value
+					y_increment * i + (width / 2) # y value
 				)
 				draw_line(vector2_array[i], Vector2(x_size, vector2_array[i].y), color, width, antialiasing)
