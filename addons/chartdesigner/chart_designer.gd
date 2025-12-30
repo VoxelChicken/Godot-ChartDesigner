@@ -11,22 +11,31 @@ extends Control
 enum ChartType{
 	LineChart,
 	BarChartVertical,
-	BarChartHorizontal
+	BarChartHorizontal,
 }
 
 ## This exported enum gives you a drop-down menu containing different chart types.
 @export var type: ChartType
-## The 'values' [code] array [/code] is the array for the values displayed on the [code] y axis [/code] in the LineGraph2D. It is also exported to the inspector on the right side of the screen (default setting).
+
+
+## This  group holds the settings for the Line- and BarChart.
+@export_group("LineChart & BarChart")
+
+## The 'values' array is the array for the values displayed on the y axis in the chart. It is also exported to the inspector on the right side of the screen (default setting).
 @export var values: PackedFloat64Array
-## This variable is simply exported to the inspector, where you can choose which color you want the [code] LineGraph2D [/code] to have.
-@export var color: Color
-## This variable is also exported to the editor. This is the width of the [code] LineGraph2D [/code]. Setting it to -1 makes the line as thin as possible, in some cases, even less than 1 pixel wide.
-@export var width: float
+
+## With this color, you can choose which color you want the line to have.
+@export var line_color: Color
+## With this color you can choose your desired width of the x and y line's width. Setting it to -1 makes the line as thin as possible, in some cases, even less than 1 pixel wide.
+@export var x_y_lines_color: Color
+
+## With this color you can choose your desired width of the line width. Setting it to -1 makes the line as thin as possible, in some cases, even less than 1 pixel wide.
+@export var line_width: float
+## This variable is the width of the background lines that indicate the x and y axes.
+@export var x_y_lines_width: float
+
 ## This is the antialiasing [code] bool [/code]. It's also exported to the inspector. The antialiasing makes the pixelated lines smooth if '[code] True [/code]' ('On').
 @export var antialiasing: bool
-## This [code] bool [/code] makes the [code] LineGraph2D [/code] adaptable to the values and is exclusive to the LineChart, so other charts don't have this.
-## e.g.: if you have something that is more than a 0 as a minimum value, the graph adapts to the minimum variable, so that the bottom part of the LineGraph2D isn't the "zero line", but rather the minimum variable itself.
-@export var value_adapting: bool
 
 ## This method ([code]set_values[/code]) replaces the current values with new ones. It can be called when a function is pressed, like:
 ## 
@@ -43,51 +52,86 @@ func _init() -> void:
 
 func _draw() -> void:
 	var total_point_count := len(values)
+	
 	var x_size := get_rect().size.x
 	var y_size := get_rect().size.y
+	
 	var min_val: float # 'Min' is short for 'minimum value' and is the smallest value in the 'values' array.
+	var min_val_index: int # The index of the min_val in the 'values' array.
+	
 	var max_val: float # 'Max' is short for 'maximum value' and is the largest value in the 'values' array.
+	var max_val_index: int # The index of the max_val in the 'values' array.
+	
+	var position_range: float # This variable defines the y_position dfifference between max_val and min_val. The formula can be found below.
 	
 	var vector2_array: PackedVector2Array
+	
 	vector2_array.resize(total_point_count)
 	
 	min_val = values[0] # This is for the iteration of the array to work well. This makes the 'min_val' NOT be 0.
-	for value in values:
+	for i in values.size():
+		var value = values[i]
 		if value > max_val:
+			max_val_index = i
 			max_val = value
 		if value < min_val:
 			min_val = value
+			min_val_index = i
 		# The for loop above cycles through the array 'values' and assigns 'min_val' and 'max_val' accordingly. (Declaration of the variables in the code above)
 	
 	
 	match type:
 		
 		ChartType.LineChart: # The code below runs when the user selected 'LineChart' as the Chart Type.
+			var offset = x_y_lines_width / 2
+			var line_chart_x_y_indicator_point_array: PackedVector2Array = [
+				Vector2(offset, 0),
+				Vector2(offset, y_size - offset),
+				Vector2(x_size, y_size - offset)
+			]
+			
 			var x_increment = (x_size) / (total_point_count - 1)
-			if value_adapting == false:
-				for i in total_point_count:
-					vector2_array[i] = Vector2(
-						x_increment * i, # x value
-						y_size - (y_size / max_val * values[i]) # y value
-						)
-				draw_polyline(vector2_array, color, width, antialiasing)
-			else:
-				print("Not developed yet, sorry!")
-				
+			
+			for i in total_point_count:
+				vector2_array[i] = Vector2(
+					x_increment * i, # x value
+					y_size - (y_size / max_val * values[i]) # y value
+					)
+			draw_polyline(vector2_array, line_color, line_width, antialiasing) # Draws the main line.
+			draw_polyline(line_chart_x_y_indicator_point_array, x_y_lines_color, x_y_lines_width, antialiasing) # Draws the x and y helper lines.
+			
 		ChartType.BarChartVertical: # The code below runs when the user selected 'BarChartVertical' as the Chart Type.
-			var x_increment = (x_size - width) / (total_point_count - 1)
+			var offset = x_y_lines_width / 2
+			var line_chart_x_y_indicator_point_array: PackedVector2Array = [
+				Vector2(offset, 0),
+				Vector2(offset, y_size - offset),
+				Vector2(x_size, y_size - offset)
+			]
+			
+			var x_increment = (x_size - line_width - (x_y_lines_width * 2)) / (total_point_count - 1)
+			
 			for i in total_point_count:
 					vector2_array[i] = Vector2(
-						x_increment * i + (width / 2), # x value
+						x_increment * i + (line_width / 2) + x_y_lines_width, # x value
 						y_size - (y_size / max_val * values[i]) # y value
 						)
-					draw_line(vector2_array[i], Vector2(vector2_array[i].x, y_size), color, width, antialiasing)
-		
+					draw_line(vector2_array[i], Vector2(vector2_array[i].x, y_size), line_color, line_width, antialiasing) # Draws the main lines.
+			draw_polyline(line_chart_x_y_indicator_point_array, x_y_lines_color, x_y_lines_width, antialiasing) # Draws the x and y helper lines.
+			
 		ChartType.BarChartHorizontal: # The code below runs when the user selected 'BarChartHorizontal' as the Chart Type. This, for now, unfortunately works only from right-to-left horizontally, not left-to-right, as intended. The add-on is still in development, though!
-			var y_increment = (y_size - width) / (total_point_count - 1)
+			var offset = x_y_lines_width / 2
+			var line_chart_x_y_indicator_point_array: PackedVector2Array = [
+				Vector2(x_size - offset, 0),
+				Vector2(x_size - offset, y_size - offset),
+				Vector2(offset, y_size - offset)
+			]
+			
+			var y_increment = (y_size - line_width - (x_y_lines_width * 2)) / (total_point_count - 1)
+			
 			for i in total_point_count:
 				vector2_array[i] = Vector2(
 					x_size - (x_size / max_val * values[i]), # x value
-					y_increment * i + (width / 2) # y value
+					y_increment * i + (line_width / 2) + x_y_lines_width # y value
 				)
-				draw_line(vector2_array[i], Vector2(x_size, vector2_array[i].y), color, width, antialiasing)
+				draw_line(vector2_array[i], Vector2(x_size, vector2_array[i].y), line_color, line_width, antialiasing) # Draws the main lines.
+			draw_polyline(line_chart_x_y_indicator_point_array, x_y_lines_color, x_y_lines_width, antialiasing) # Draws the x and y helper lines.
