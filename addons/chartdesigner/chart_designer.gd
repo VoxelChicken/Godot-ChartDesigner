@@ -1,4 +1,4 @@
-@icon("res://LineGraph2D.png")
+@icon("res://addons/chartdesigner/LineGraph2D.png")
 
 ## The ChartDesigner is the Add-on alternative to writing your own charts. It makes making charts simple and easy. To set up the size of the desired chart, you just have to set up the control node to the desired size of the chart.
 ## Follow up with a glance at the inspector - it has the variables required for designing the desired chart, and most importantly, it contains the [code]PackedFloat64Array[/code] for the points

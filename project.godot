@@ -11,6 +11,8 @@ config_version=5
 [application]
 
 config/name="Line Graph Add-On"
+config/description="This is a playroom project for my Godot add-on 'ChartDesigner'. Development is being done here."
+config/version="0.2.0"
 run/main_scene="uid://cvssydjc18g22"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="uid://c8tsvu3p3tpr6"
