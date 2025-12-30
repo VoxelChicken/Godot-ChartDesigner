@@ -1,12 +1,21 @@
 @icon("res://LineGraph2D.png")
 
-## The [code] LineGraph2D [/code] is the Add-on alternative to writing your own line graph. It makes making a line graph simple and easy. To set up the size of the [code] LineGraph2D [/code], you just have resize the control node in the editor.
-## Follow up with a glance at the inspector - it has the variables required for building the line graph, and most importantly, it has the [code] PackedVector2Array [/code] for the points.
-## The variables, apart from the [code] PackedFloat64Array [/code], include Color, Width, and Anti-aliasing. Tune these to your preference and you have yourself an easy line graph, enjoy![br][br]
+## The ChartDesigner is the Add-on alternative to writing your own charts. It makes making charts simple and easy. To set up the size of the desired chart, you just have to set up the control node to the desired size of the chart.
+## Follow up with a glance at the inspector - it has the variables required for designing the desired chart, and most importantly, it contains the [code]PackedFloat64Array[/code] for the points
+## (in the inspector, the 'values' array isn't a [code]PackedVector2Array[/code], which the Godot's [code]Line2D[/code] uses, but rather a [code]PackedFloat64Array[/code]. This is because the only thing the user has to do is give the graph the values, because the regular increments on the x axis are done automatically calculated).
+## The variables, apart from the [code]PackedFloat64Array[/code], include Color, Width, and Anti-aliasing. Tune these to your preference and you have yourself an easy chart, enjoy![br][br]
 ## (Note: This is an open-source passion project by a solo developer. Updates are most likely not going to appear at regular intervals, but rather, at random.)
-class_name LineGraph2D
+class_name ChartDesigner
 extends Control
 
+enum ChartType{
+	LineChart,
+	BarChartVertical,
+	BarChartHorizontal
+}
+
+## This exported enum gives you a drop-down menu containing different chart types.
+@export var type: ChartType
 ## The 'values' [code] array [/code] is the array for the values displayed on the [code] y axis [/code] in the LineGraph2D. It is also exported to the inspector on the right side of the screen (default setting).
 @export var values: PackedFloat64Array
 ## This variable is simply exported to the inspector, where you can choose which color you want the [code] LineGraph2D [/code] to have.
@@ -15,7 +24,8 @@ extends Control
 @export var width: float
 ## This is the antialiasing [code] bool [/code]. It's also exported to the inspector. The antialiasing makes the pixelated lines smooth if '[code] True [/code]' ('On').
 @export var antialiasing: bool
-## This [code] bool [/code] makes the [code] LineGraph2D [/code] adaptable to the values. e.g.: if you have something that is more than a 0 as a minimum value, the graph adapts to the minimum variable, so that the bottom part of the LineGraph2D isn't the "zero line", but rather the minimum variable itself.
+## This [code] bool [/code] makes the [code] LineGraph2D [/code] adaptable to the values and is exclusive to the LineChart, so other charts don't have this.
+## e.g.: if you have something that is more than a 0 as a minimum value, the graph adapts to the minimum variable, so that the bottom part of the LineGraph2D isn't the "zero line", but rather the minimum variable itself.
 @export var value_adapting: bool
 
 ## This method ([code]set_values[/code]) replaces the current values with new ones. It can be called when a function is pressed, like:
@@ -38,8 +48,6 @@ func _draw() -> void:
 	var min: float # 'Min' is short for 'minimum' and is the smallest amount in the 'values' array.
 	var max: float # 'Max' is short for 'maximum' and is the largest amount in the 'values' array.
 	
-	var x_increment = x_size / (total_point_count - 1)
-	
 	var vector2_array: PackedVector2Array
 	vector2_array.resize(total_point_count)
 	
@@ -51,20 +59,35 @@ func _draw() -> void:
 			min = value
 		# The for loop above cycles through the array 'values' and assigns 'min' and 'max' accordingly. (Declaration of the variables in the code above)
 	
-	if value_adapting == false:
-		for i in total_point_count:
-			vector2_array[i] = Vector2(
-				x_increment * i, # x value
-				y_size - (y_size / max * values[i]) # y value
-				)
-	else:
-		print("Not developed yet, sorry!")
 	
-	print("Maximum:")
-	print(max)
-	print("Minimum:")
-	print(min)
-	print("PackedVector2Array:")
-	print(vector2_array)
-
-	draw_polyline(vector2_array, color, width, antialiasing) 
+	match type:
+		
+		ChartType.LineChart: # The code below runs when the user selected 'LineChart' as the Chart Type.
+			var x_increment = (x_size) / (total_point_count - 1)
+			if value_adapting == false:
+				for i in total_point_count:
+					vector2_array[i] = Vector2(
+						x_increment * i, # x value
+						y_size - (y_size / max * values[i]) # y value
+						)
+				draw_polyline(vector2_array, color, width, antialiasing)
+			else:
+				print("Not developed yet, sorry!")
+				
+		ChartType.BarChartVertical: # The code below runs when the user selected 'BarChartVertical' as the Chart Type.
+			var x_increment = (x_size - width) / (total_point_count - 1)
+			for i in total_point_count:
+					vector2_array[i] = Vector2(
+						x_increment * i + (width / 2), # x value
+						y_size - (y_size / max * values[i]) # y value
+						)
+					draw_line(vector2_array[i], Vector2(vector2_array[i].x, y_size), color, width, antialiasing)
+		
+		ChartType.BarChartHorizontal: # The code below runs when the user selected 'BarChartHorizontal' as the Chart Type. This, for now, unfortunately works only from right-to-left horizontally, not left-to-right, as intended. The add-on is still in development, though!
+			var y_increment = (y_size - width) / (total_point_count - 1)
+			for i in total_point_count:
+				vector2_array[i] = Vector2(
+					x_size - (x_size / max * values[i]),
+					y_increment * i + (width / 2)
+				)
+				draw_line(vector2_array[i], Vector2(x_size, vector2_array[i].y), color, width, antialiasing)

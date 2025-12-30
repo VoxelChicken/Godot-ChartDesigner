@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://c52ll0p02s5e8" path="res://line_graph.gd" id="1_3y48l"]
 
-[node name="LineGraph2D" type="Control"]
+[node name="ChartDesigner" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -10,7 +10,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_3y48l")
-values = PackedFloat64Array(0, 2, 1, 2, 2, 4)
+values = PackedFloat64Array(34, 34, 23, 23, 54, 45)
 color = Color(1, 1, 1, 1)
 width = 5.0
 antialiasing = true
