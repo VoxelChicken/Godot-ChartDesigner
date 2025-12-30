@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cr13fcnm2u5b0"
-path="res://.godot/imported/LineGraph2D.png-20b8a00e539ce566960b1b9f89b92f01.ctex"
+uid="uid://cc67ynx0me0sa"
+path="res://.godot/imported/LineGraph.png-509b980d81d8a80976c0713b66a7f13e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/chartdesigner/LineGraph2D.png"
-dest_files=["res://.godot/imported/LineGraph2D.png-20b8a00e539ce566960b1b9f89b92f01.ctex"]
+source_file="res://addons/chartdesigner/LineGraph.png"
+dest_files=["res://.godot/imported/LineGraph.png-509b980d81d8a80976c0713b66a7f13e.ctex"]
 
 [params]
 
