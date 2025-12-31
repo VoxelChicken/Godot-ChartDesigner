@@ -10,8 +10,8 @@ class_name ChartDesigner
 extends Control
 
 enum ChartType{
-	LineChart,
-	BarChartVertical
+	LineGraph,
+	BarChart
 }
 
 ## This exported enum gives you a drop-down menu containing different chart types.
@@ -21,7 +21,8 @@ enum ChartType{
 ## This  group holds the settings for the Line- and BarChart.
 @export_group("LineChart & BarChart")
 
-## The 'values' array is the array for the values displayed on the y axis in the chart. It is also exported to the inspector on the right side of the screen (default setting).
+## The 'values' array is the array for the values displayed on the y axis in the chart.
+## It is also exported to the inspector on the right side of the screen (default setting). When you first get the add-on, there aren't any valuables set to this array, so you have to enter AT LEAST 2 values.
 @export var values: PackedFloat64Array
 
 ## With this color, you can choose which color you want the line to have.
@@ -34,8 +35,8 @@ enum ChartType{
 ## This variable is the width of the background lines that indicate the x and y axes.
 @export var x_y_lines_width: float = 10
 
-## With this variable for the bar charts exclusively, you can define the distance between the first and last bar (column) to the edge (y axis line).
-@export var distance_to_y_or_x: float
+## With this variable (originally intended for bar charts, however you can use this for line graphs just the same), you can define the distance between the first and last bar (column) to the edge (y axis line).
+@export var distance_to_y: float
 
 ## This is the antialiasing [code] bool [/code]. It's also exported to the inspector. The antialiasing makes the pixelated lines smooth if '[code] True [/code]' ('On').
 @export var antialiasing: bool
@@ -54,6 +55,18 @@ func _init() -> void:
 	resized.connect(queue_redraw)
 
 func _draw() -> void:
+	if values.is_empty():
+		push_warning(
+		"Not enough values entered! If you entered none, please add at least two!"
+		) # Error handling. if there aren't any values whatsoever, this message tells you.
+		return
+		
+	elif len(values) < 2:
+		push_warning(
+		"Not enough values entered! If you merely typed in one single value, please fix it and make at least two out of it."
+		) # Error handling. if there is only one value set, this message tells you.
+		return
+		
 	var total_point_count := len(values)
 	
 	var x_size := get_rect().size.x
@@ -85,7 +98,7 @@ func _draw() -> void:
 	
 	match type:
 		
-		ChartType.LineChart: # The code below runs when the user selected 'LineChart' as the Chart Type.
+		ChartType.LineGraph: # The code below runs when the user selected 'LineChart' as the Chart Type.
 			var offset = x_y_lines_width / 2
 			var line_chart_x_y_indicator_point_array: PackedVector2Array = [
 				Vector2(offset, 0),
@@ -93,17 +106,20 @@ func _draw() -> void:
 				Vector2(x_size, y_size - offset)
 			]
 			
-			var x_increment = x_size / (total_point_count - 1)
+			var x_increment = (x_size - line_width - distance_to_y) / (total_point_count - 1)
 			
 			for i in total_point_count:
 				vector2_array[i] = Vector2(
-					x_increment * i, # x value
+					x_increment * i + (distance_to_y / 2), # x value
 					y_size - (y_size / max_val * values[i]) # y value
 					)
 			draw_polyline(vector2_array, line_color, line_width, antialiasing) # Draws the main line.
 			draw_polyline(line_chart_x_y_indicator_point_array, x_y_lines_color, x_y_lines_width, antialiasing) # Draws the x and y helper lines.
 			
-		ChartType.BarChartVertical: # The code below runs when the user selected 'BarChartVertical' as the Chart Type.
+			
+			
+			
+		ChartType.BarChart: # The code below runs when the user selected 'BarChartVertical' as the Chart Type.
 			var offset = x_y_lines_width / 2 # Makes the code nicer to look at
 			var line_chart_x_y_indicator_point_array: PackedVector2Array = [
 				Vector2(offset, 0),
@@ -111,11 +127,11 @@ func _draw() -> void:
 				Vector2(x_size, y_size - offset)
 			] # This array sets the point positions of the x and y axes lines.
 			
-			var x_increment = (x_size - line_width - distance_to_y_or_x) / (total_point_count - 1)
+			var x_increment = (x_size - line_width - distance_to_y) / (total_point_count - 1)
 			
 			for i in total_point_count:
 				vector2_array[i] = Vector2(
-					(x_increment * i) + (line_width / 2) + (distance_to_y_or_x / 2), # x value
+					(x_increment * i) + (line_width / 2) + (distance_to_y / 2), # x value
 					y_size - (y_size / max_val * values[i]) # y value
 					)
 				draw_line(vector2_array[i], Vector2(vector2_array[i].x, y_size), line_color, line_width, antialiasing) # Draws the main lines.
