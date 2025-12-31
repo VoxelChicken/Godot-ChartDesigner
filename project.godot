@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Line Graph Add-On"
+config/name="GraphDesigner Add-On"
 config/description="This is a playroom project for my Godot add-on 'ChartDesigner'. Development is being done here."
 config/version="0.3.0"
 run/main_scene="uid://cvssydjc18g22"
