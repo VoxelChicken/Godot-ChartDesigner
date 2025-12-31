@@ -134,15 +134,15 @@ func _draw() -> void:
 			draw_polyline(line_chart_x_y_indicator_point_array, x_y_lines_color, x_y_lines_width, antialiasing) # Draws the x and y axis lines.
 			
 			
-			
-			var text_size_max := default_font.get_multiline_string_size(str(max_val), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size)
-			var text_size_zero := default_font.get_multiline_string_size("0", HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size)
-			
-			draw_string(default_font, Vector2((text_size_max.x * -0.5), (number_font_size * -1)), str(max_val), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size, number_color)
-			
-			for index in vector2_array.size():
-				draw_string(default_font, Vector2(vector2_array[index].x - (text_size_zero.x / 2), y_size + text_size_zero.y), str(index), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size, number_color)
-			# The code above draws the numbers for the LineGraph.
+			if number_labels:
+				var text_size_max := default_font.get_multiline_string_size(str(max_val), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size)
+				var text_size_zero := default_font.get_multiline_string_size("0", HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size)
+				
+				draw_string(default_font, Vector2((text_size_max.x * -0.5), (number_font_size * -1)), str(max_val), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size, number_color)
+				
+				for index in vector2_array.size():
+					draw_string(default_font, Vector2(vector2_array[index].x - (text_size_zero.x / 2), y_size + text_size_zero.y), str(index), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size, number_color)
+				# The code above draws the numbers for the LineGraph.
 			
 	# ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			
@@ -165,11 +165,12 @@ func _draw() -> void:
 			draw_polyline(line_chart_x_y_indicator_point_array, x_y_lines_color, x_y_lines_width, antialiasing) # Draws the x and y helper lines.
 			
 			
-			var text_size_max := default_font.get_multiline_string_size(str(max_val), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size)
-			var text_size_zero := default_font.get_multiline_string_size("0", HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size)
-			
-			draw_string(default_font, Vector2((text_size_max.x * -0.5), (number_font_size * -1)), str(max_val), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size, number_color)
-			
-			for index in vector2_array.size():
-				draw_string(default_font, Vector2(vector2_array[index].x - (text_size_zero.x / 2), y_size + text_size_zero.y), str(index), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size, number_color)
-			# The code above draws the numbers for the BarChart.
+			if number_labels:
+				var text_size_max := default_font.get_multiline_string_size(str(max_val), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size)
+				var text_size_zero := default_font.get_multiline_string_size("0", HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size)
+				
+				draw_string(default_font, Vector2((text_size_max.x * -0.5), (number_font_size * -1)), str(max_val), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size, number_color)
+				
+				for index in vector2_array.size():
+					draw_string(default_font, Vector2(vector2_array[index].x - (text_size_zero.x / 2), y_size + text_size_zero.y), str(index), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size, number_color)
+				# The code above draws the numbers for the BarChart.
