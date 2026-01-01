@@ -54,7 +54,22 @@ enum PredefinedShapes{
 @export var number_font_size: float = 20
 
 ## Choose the font color of the numbers on the edges of the LineGraph or BarChart.
-@export var number_color: Color
+@export var number_color: Color = Color.BLACK
+
+## This variable lets you choose if you want helper lines, so the close to invisible lines in the LineGraph, indicating where values roughly are.
+@export var helper_line_amount: int
+
+## Choose your color for the helper lines.
+@export var helper_line_color: Color = Color.BLACK
+
+## Choose your width for the helper_lines.
+@export var helper_line_width: float = 2.0
+
+## With this variable, you can adjust the helper numbers on the left side of the LineGraph or BarChart.
+@export var helper_number_adjustment: float = 60
+
+## Antialiasing for the helper lines.
+@export var helper_line_antialiasing: bool = true
 
 ## This method ([code]set_values[/code]) replaces the current values with new ones. It can be called when a function is pressed, like:
 ## 
@@ -101,6 +116,8 @@ func _draw() -> void:
 	
 	vector2_array.resize(total_point_count) # Makes the 'vector2_array' as big as the 'values' array.
 	
+	var helper_line_y_val: float # Helps the creation of the y lines by assigning this to 'max_val / 3'
+	
 	min_val = values[0] # This is for the iteration of the array to work well. This makes the 'min_val' NOT be 0.
 	for i in values.size():
 		var value := values[i]
@@ -126,7 +143,7 @@ func _draw() -> void:
 			var x_increment = (x_size - line_width - distance_to_y) / (total_point_count - 1) # Sets the x_increment for the point positions.x.
 			
 			for i in total_point_count:
-				vector2_array[i] = Vector2(
+				vector2_array[i] = Vector2( # This simply initializes a PackedVector2Array with the following values:
 					x_increment * i + (distance_to_y / 2) + (line_width / 2), # x value
 					y_size - (y_size / max_val * values[i]) - (line_width / 2) # y value
 					)
@@ -142,7 +159,28 @@ func _draw() -> void:
 				
 				for index in vector2_array.size():
 					draw_string(default_font, Vector2(vector2_array[index].x - (text_size_zero.x / 2), y_size + text_size_zero.y), str(index), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size, number_color)
-				# The code above draws the numbers for the LineGraph.
+			
+				for i in helper_line_amount:
+					draw_line(
+						Vector2(offset, i * (y_size / helper_line_amount)),
+						Vector2(x_size, i * (y_size / helper_line_amount)),
+						helper_line_color, helper_line_width, helper_line_antialiasing
+					)
+					
+					draw_string(
+						default_font, # Font
+						Vector2(
+							text_size_zero.x - helper_number_adjustment,
+							float(y_size) - float(i) * (float(y_size) / float(helper_line_amount)) + (text_size_zero.y / 4.0)
+						), # Position
+						str((max_val / helper_line_amount * i)), # Contains [String]
+						HORIZONTAL_ALIGNMENT_CENTER, # Alignment
+						-1, # Width
+						number_font_size, # Font Size
+						number_color # Color
+					) # The draw_string() function above draws the helper_numbers on the left side of LineGraph.
+					
+			# The code above draws the LineGraph.
 			
 	# ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			
@@ -154,11 +192,11 @@ func _draw() -> void:
 				Vector2(x_size, y_size - offset)
 			] # This array sets the point positions of the x and y axes lines.
 			
-			var x_increment = (x_size - line_width) / (total_point_count - 1) - (x_y_lines_width / 4) - (distance_to_y / 2)
+			var x_increment = (x_size - line_width - x_y_lines_width - (distance_to_y)) / (total_point_count - 1)
 			
 			for i in total_point_count:
 				vector2_array[i] = Vector2(
-					(x_increment * i) + (line_width / 2) + (x_y_lines_width) + (distance_to_y), # x value
+					(x_increment * i) + x_y_lines_width + (line_width / 2) + (distance_to_y / 2), # x value
 					y_size - (y_size / max_val * values[i]) # y value
 					)
 				draw_line(vector2_array[i], Vector2(vector2_array[i].x, y_size - x_y_lines_width), line_color, line_width, antialiasing) # Draws the main lines.
@@ -173,4 +211,25 @@ func _draw() -> void:
 				
 				for index in vector2_array.size():
 					draw_string(default_font, Vector2(vector2_array[index].x - (text_size_zero.x / 2), y_size + text_size_zero.y), str(index), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size, number_color)
-				# The code above draws the numbers for the BarChart.
+				
+				for i in helper_line_amount:
+					draw_line(
+						Vector2(offset, i * (y_size / helper_line_amount)),
+						Vector2(x_size, i * (y_size / helper_line_amount)),
+						helper_line_color, helper_line_width, helper_line_antialiasing
+					)
+					
+					draw_string(
+						default_font, # Font
+						Vector2(
+							text_size_zero.x - helper_number_adjustment,
+							float(y_size) - float(i) * (float(y_size) / float(helper_line_amount)) + (text_size_zero.y / 4.0)
+						), # Position
+						str((max_val / helper_line_amount * i)), # Contains [String]
+						HORIZONTAL_ALIGNMENT_CENTER, # Alignment
+						-1, # Width
+						number_font_size, # Font Size
+						number_color # Color
+					) # The draw_string() function above draws the helper_numbers on the left side of BarChart.
+					
+				# The code above draws the BarChart.
