@@ -3,8 +3,14 @@
 ## The ChartDesigner is the Add-on alternative to writing your own charts. It makes making charts simple and easy. To set up the size of the desired chart, you just have to set up the control node to the desired size of the chart.
 ## Follow up with a glance at the inspector - it has the variables required for designing the desired chart, and most importantly, it contains the [code]PackedFloat64Array[/code] for the points
 ## (in the inspector, the 'values' array isn't a [code]PackedVector2Array[/code], which the Godot's [code]Line2D[/code] uses, but rather a [code]PackedFloat64Array[/code]. This is because the only thing the user has to do is give the graph the values, because the regular increments on the x axis are done automatically calculated).
-## The variables, apart from the [code]PackedFloat64Array[/code], include Color, Width, and Anti-aliasing. Tune these to your preference and you have yourself an easy chart, enjoy![br][br]
-## It is advisable to play around and change the variables at will to learn about each of the settings and what they change (additionally, nothing prevents you from glancing at the code, if you please).[br][br]
+## The variables, apart from the [code]PackedFloat64Array[/code], include:[br][br]
+## Line Color,[br]
+## x and y Lines Color,[br]
+## Line Width,[br]
+## Anti-aliasing,[br][br]
+## and so on. (Below - under 'Properties' - you'll  find the rest of them.)[br][br]
+## Tune these to your preference and you have yourself an easy chart, enjoy![br][br]
+## It is advisable to play around and change the variables at will to learn about each of the settings and what they change (additionally, nothing prevents you from glancing at the code, if you so please).[br][br]
 ## (Note: This is an open-source passion project by a solo developer. Updates are most likely not going to appear at regular intervals, but rather, at random.)
 class_name ChartDesigner
 extends Control
@@ -13,12 +19,8 @@ enum ChartType{
 	LineGraph,
 	BarChart
 }
-enum PredefinedShapes{
-	Square,
-	Use_Texture
-}
 
-# The line(s) above the variable are the docs.
+# The line(s) with '##' in the beginning means that they show up in the docs for this class.
 
 ## This exported enum gives you a drop-down menu containing different chart types.
 @export var type: ChartType
@@ -27,7 +29,7 @@ enum PredefinedShapes{
 ## This group holds the settings for the LineGraph and BarChart.
 @export_group("LineChart & BarChart")
 
-## The 'values' array is the array for the values displayed on the y axis in the chart.
+## The 'values' array is the array for the values displayed on the y axis in the Graph.
 ## It is also exported to the inspector on the right side of the screen (default setting). When you first get the add-on, there aren't any valuables set to this array, so you have to enter AT LEAST 2 values.
 @export var values: PackedFloat64Array
 
@@ -57,6 +59,7 @@ enum PredefinedShapes{
 @export var number_color: Color = Color.BLACK
 
 ## This variable lets you choose if you want helper lines, so the close to invisible lines in the LineGraph, indicating where values roughly are.
+## The only value that won't be accepted is
 @export var helper_line_amount: int
 
 ## Choose your color for the helper lines.
@@ -70,6 +73,9 @@ enum PredefinedShapes{
 
 ## Antialiasing for the helper lines.
 @export var helper_line_antialiasing: bool = true
+
+## The color for the background of the LineGraph or BarChart. If you don't like the background, just set it to completely transparent (#00000000).
+@export var background_color: Color = Color.TRANSPARENT
 
 ## This method ([code]set_values[/code]) replaces the current values with new ones. It can be called when a function is pressed, like:
 ## 
@@ -129,6 +135,7 @@ func _draw() -> void:
 			min_val_index = i
 		# The for loop above cycles through the array 'values' and assigns 'min_val' and 'max_val' accordingly. (Declaration of the variables in the code above)
 	
+	draw_rect(Rect2(Vector2(0, 0), Vector2(x_size, y_size)), background_color, true, -1, false) # Draws the background of the LineGraph and BarChart.
 	
 	match type:
 		
@@ -150,6 +157,18 @@ func _draw() -> void:
 			draw_polyline(vector2_array, line_color, line_width, antialiasing) # Draws the main line.
 			draw_polyline(line_chart_x_y_indicator_point_array, x_y_lines_color, x_y_lines_width, antialiasing) # Draws the x and y axis lines.
 			
+			if helper_line_amount >= 2: # Checks if there's less than 1 helper_lines set, and if there are less, then it won't draw anything.
+				for i in helper_line_amount:
+					draw_line(
+						Vector2(offset, i * (y_size / helper_line_amount)),
+						Vector2(x_size, i * (y_size / helper_line_amount)),
+						helper_line_color, helper_line_width, helper_line_antialiasing
+					)
+			elif helper_line_amount == 0:
+				pass
+			elif helper_line_amount < 2:
+				push_warning("Sorry - couldn't draw the helper_lines, since it doesn't make sense that there's only one (or a negative value)! Please input '0' if none, and more than '1' if you want some!")
+			
 			
 			if number_labels:
 				var text_size_max := default_font.get_multiline_string_size(str(max_val), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size)
@@ -157,23 +176,17 @@ func _draw() -> void:
 				
 				draw_string(default_font, Vector2((text_size_max.x * -0.5), (number_font_size * -1)), str(max_val), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size, number_color)
 				
+				
 				for index in vector2_array.size():
 					draw_string(default_font, Vector2(vector2_array[index].x - (text_size_zero.x / 2), y_size + text_size_zero.y), str(index), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size, number_color)
-			
-				for i in helper_line_amount:
-					draw_line(
-						Vector2(offset, i * (y_size / helper_line_amount)),
-						Vector2(x_size, i * (y_size / helper_line_amount)),
-						helper_line_color, helper_line_width, helper_line_antialiasing
-					)
 					
 					draw_string(
 						default_font, # Font
 						Vector2(
 							text_size_zero.x - helper_number_adjustment,
-							float(y_size) - float(i) * (float(y_size) / float(helper_line_amount)) + (text_size_zero.y / 4.0)
+							float(y_size) - float(index) * (float(y_size) / float(helper_line_amount)) + (text_size_zero.y / 4.0)
 						), # Position
-						str((max_val / helper_line_amount * i)), # Contains [String]
+						str((max_val / helper_line_amount * index)), # Contains [String]
 						HORIZONTAL_ALIGNMENT_CENTER, # Alignment
 						-1, # Width
 						number_font_size, # Font Size
@@ -182,7 +195,9 @@ func _draw() -> void:
 					
 			# The code above draws the LineGraph.
 			
-	# ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+			# LineGraph
+	# ----------------------------------------------------------------------------------------------------------------------------------------------------
+			# BarChart
 			
 		ChartType.BarChart: # The code below runs when the user selected 'BarChart' as the Chart Type.
 			var offset := x_y_lines_width / 2 # Makes the code nicer to look at
@@ -202,30 +217,30 @@ func _draw() -> void:
 				draw_line(vector2_array[i], Vector2(vector2_array[i].x, y_size - x_y_lines_width), line_color, line_width, antialiasing) # Draws the main lines.
 			draw_polyline(line_chart_x_y_indicator_point_array, x_y_lines_color, x_y_lines_width, antialiasing) # Draws the x and y helper lines.
 			
-			
-			if number_labels:
-				var text_size_max := default_font.get_multiline_string_size(str(max_val), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size)
-				var text_size_zero := default_font.get_multiline_string_size("0", HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size)
-				
-				draw_string(default_font, Vector2((text_size_max.x * -0.5), (number_font_size * -1)), str(max_val), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size, number_color)
-				
-				for index in vector2_array.size():
-					draw_string(default_font, Vector2(vector2_array[index].x - (text_size_zero.x / 2), y_size + text_size_zero.y), str(index), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size, number_color)
-				
+			if helper_line_amount > 2:
 				for i in helper_line_amount:
 					draw_line(
 						Vector2(offset, i * (y_size / helper_line_amount)),
 						Vector2(x_size, i * (y_size / helper_line_amount)),
 						helper_line_color, helper_line_width, helper_line_antialiasing
 					)
+			
+			if number_labels:
+				var text_size_max := default_font.get_multiline_string_size(str(max_val), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size) # Stores the size of the string of the maximum value. Makes the offsetting for other stuff easier.
+				var text_size_zero := default_font.get_multiline_string_size("0", HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size) # Stores the size of the string "0". Makes the offsetting for other stuff easier.
+				
+				draw_string(default_font, Vector2((text_size_max.x * -0.5), (number_font_size * -1)), str(max_val), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size, number_color) # Draws the maximum value on top of the LineGraph / BarChart.
+				
+				for index in vector2_array.size():
+					draw_string(default_font, Vector2(vector2_array[index].x - (text_size_zero.x / 2), y_size + text_size_zero.y), str(index), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size, number_color)
 					
 					draw_string(
 						default_font, # Font
 						Vector2(
 							text_size_zero.x - helper_number_adjustment,
-							float(y_size) - float(i) * (float(y_size) / float(helper_line_amount)) + (text_size_zero.y / 4.0)
+							float(index) * (float(y_size) / float(helper_line_amount)) + (text_size_zero.y / 4.0)
 						), # Position
-						str((max_val / helper_line_amount * i)), # Contains [String]
+						str((max_val / helper_line_amount * index)), # Contains the value of the helper_line that it's next to.
 						HORIZONTAL_ALIGNMENT_CENTER, # Alignment
 						-1, # Width
 						number_font_size, # Font Size
