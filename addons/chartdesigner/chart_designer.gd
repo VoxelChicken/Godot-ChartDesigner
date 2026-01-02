@@ -137,16 +137,19 @@ func _draw() -> void:
 	
 	draw_rect(Rect2(Vector2(0, 0), Vector2(x_size, y_size)), background_color, true, -1, false) # Draws the background of the LineGraph and BarChart.
 	
+	var offset := x_y_lines_width / 2
+	
+	var line_chart_x_y_indicator_point_array: PackedVector2Array = [
+		Vector2(offset, 0),
+		Vector2(offset, y_size - offset),
+		Vector2(x_size, y_size - offset)
+	] # This array sets the point positions of the x and y axes lines.
+	
+	#region Graph drawing
+	
 	match type:
 		
 		ChartType.LineGraph: # The code below runs when the user selected 'LineChart' as the Chart Type.
-			var offset := x_y_lines_width / 2
-			var line_chart_x_y_indicator_point_array: PackedVector2Array = [
-				Vector2(offset, 0),
-				Vector2(offset, y_size - offset),
-				Vector2(x_size, y_size - offset)
-			]
-			
 			var x_increment = (x_size - line_width - distance_to_y) / (total_point_count - 1) # Sets the x_increment for the point positions.x.
 			
 			for i in total_point_count:
@@ -155,44 +158,7 @@ func _draw() -> void:
 					y_size - (y_size / max_val * values[i]) - (line_width / 2) # y value
 					)
 			draw_polyline(vector2_array, line_color, line_width, antialiasing) # Draws the main line.
-			draw_polyline(line_chart_x_y_indicator_point_array, x_y_lines_color, x_y_lines_width, antialiasing) # Draws the x and y axis lines.
 			
-			if helper_line_amount >= 2: # Checks if there's less than 1 helper_lines set, and if there are less, then it won't draw anything.
-				for i in helper_line_amount:
-					draw_line(
-						Vector2(offset, i * (y_size / helper_line_amount)),
-						Vector2(x_size, i * (y_size / helper_line_amount)),
-						helper_line_color, helper_line_width, helper_line_antialiasing
-					)
-			elif helper_line_amount == 0:
-				pass
-			elif helper_line_amount < 2:
-				push_warning("Sorry - couldn't draw the helper_lines, since it doesn't make sense that there's only one (or a negative value)! Please input '0' if none, and more than '1' if you want some!")
-			
-			
-			if number_labels:
-				var text_size_max := default_font.get_multiline_string_size(str(max_val), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size)
-				var text_size_zero := default_font.get_multiline_string_size("0", HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size)
-				
-				draw_string(default_font, Vector2((text_size_max.x * -0.5), (number_font_size * -1)), str(max_val), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size, number_color)
-				
-				
-				for index in vector2_array.size():
-					draw_string(default_font, Vector2(vector2_array[index].x - (text_size_zero.x / 2), y_size + text_size_zero.y), str(index), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size, number_color)
-					
-					draw_string(
-						default_font, # Font
-						Vector2(
-							text_size_zero.x - helper_number_adjustment,
-							float(y_size) - float(index) * (float(y_size) / float(helper_line_amount)) + (text_size_zero.y / 4.0)
-						), # Position
-						str((max_val / helper_line_amount * index)), # Contains [String]
-						HORIZONTAL_ALIGNMENT_CENTER, # Alignment
-						-1, # Width
-						number_font_size, # Font Size
-						number_color # Color
-					) # The draw_string() function above draws the helper_numbers on the left side of LineGraph.
-					
 			# The code above draws the LineGraph.
 			
 			# LineGraph
@@ -200,51 +166,56 @@ func _draw() -> void:
 			# BarChart
 			
 		ChartType.BarChart: # The code below runs when the user selected 'BarChart' as the Chart Type.
-			var offset := x_y_lines_width / 2 # Makes the code nicer to look at
-			var line_chart_x_y_indicator_point_array: PackedVector2Array = [
-				Vector2(offset, 0),
-				Vector2(offset, y_size - offset),
-				Vector2(x_size, y_size - offset)
-			] # This array sets the point positions of the x and y axes lines.
-			
 			var x_increment = (x_size - line_width - x_y_lines_width - (distance_to_y)) / (total_point_count - 1)
 			
 			for i in total_point_count:
 				vector2_array[i] = Vector2(
 					(x_increment * i) + x_y_lines_width + (line_width / 2) + (distance_to_y / 2), # x value
 					y_size - (y_size / max_val * values[i]) # y value
-					)
+				)
 				draw_line(vector2_array[i], Vector2(vector2_array[i].x, y_size - x_y_lines_width), line_color, line_width, antialiasing) # Draws the main lines.
-			draw_polyline(line_chart_x_y_indicator_point_array, x_y_lines_color, x_y_lines_width, antialiasing) # Draws the x and y helper lines.
-			
-			if helper_line_amount > 2:
-				for i in helper_line_amount:
-					draw_line(
-						Vector2(offset, i * (y_size / helper_line_amount)),
-						Vector2(x_size, i * (y_size / helper_line_amount)),
-						helper_line_color, helper_line_width, helper_line_antialiasing
-					)
-			
-			if number_labels:
-				var text_size_max := default_font.get_multiline_string_size(str(max_val), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size) # Stores the size of the string of the maximum value. Makes the offsetting for other stuff easier.
-				var text_size_zero := default_font.get_multiline_string_size("0", HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size) # Stores the size of the string "0". Makes the offsetting for other stuff easier.
-				
-				draw_string(default_font, Vector2((text_size_max.x * -0.5), (number_font_size * -1)), str(max_val), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size, number_color) # Draws the maximum value on top of the LineGraph / BarChart.
-				
-				for index in vector2_array.size():
-					draw_string(default_font, Vector2(vector2_array[index].x - (text_size_zero.x / 2), y_size + text_size_zero.y), str(index), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size, number_color)
-					
-					draw_string(
-						default_font, # Font
-						Vector2(
-							text_size_zero.x - helper_number_adjustment,
-							float(index) * (float(y_size) / float(helper_line_amount)) + (text_size_zero.y / 4.0)
-						), # Position
-						str((max_val / helper_line_amount * index)), # Contains the value of the helper_line that it's next to.
-						HORIZONTAL_ALIGNMENT_CENTER, # Alignment
-						-1, # Width
-						number_font_size, # Font Size
-						number_color # Color
-					) # The draw_string() function above draws the helper_numbers on the left side of BarChart.
-					
-				# The code above draws the BarChart.
+			# The code above draws the BarChart.
+
+	draw_polyline(line_chart_x_y_indicator_point_array, x_y_lines_color, x_y_lines_width, antialiasing) # Draws the x and y axis lines.
+
+	#endregion
+
+	#region Helper lines
+	
+	if helper_line_amount >= 2: # Checks if there's less than 1 helper_lines set, and if there are less, then it won't draw anything.
+		for i in helper_line_amount:
+			draw_line(
+				Vector2(offset, i * (y_size / helper_line_amount)),
+				Vector2(x_size, i * (y_size / helper_line_amount)),
+				helper_line_color, helper_line_width, helper_line_antialiasing
+			)
+	elif helper_line_amount == 0:
+		pass
+	elif helper_line_amount < 2:
+		push_warning("Sorry - couldn't draw the helper_lines, since it doesn't make sense that there's only one (or a negative value)! Please input '0' if none, and more than '1' if you want some!")
+	
+	if number_labels:
+		var text_size_max := default_font.get_multiline_string_size(str(max_val), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size)
+		var text_size_single_liner := default_font.get_multiline_string_size("0", HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size)
+		
+		for j in helper_line_amount:
+			draw_string(
+				default_font, # Font
+				Vector2(
+					text_size_single_liner.x - helper_number_adjustment,
+					float(y_size) - float(j) * (float(y_size) / float(helper_line_amount)) + (text_size_single_liner.y / 4.0)
+				), # Position
+				str((max_val / helper_line_amount * j)), # Contains [String]
+				HORIZONTAL_ALIGNMENT_CENTER, # Alignment
+				-1, # Width
+				number_font_size, # Font Size
+				number_color # Color
+			) # The draw_string() function above draws the helper_numbers on the left side of LineGraph.
+		
+		draw_string(default_font, Vector2((text_size_max.x * -0.5), (number_font_size * -1)), str(max_val), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size, number_color)
+		
+		
+		for index in vector2_array.size():
+			draw_string(default_font, Vector2(vector2_array[index].x - (text_size_single_liner.x / 2), y_size + text_size_single_liner.y), str(index), HORIZONTAL_ALIGNMENT_CENTER, -1, number_font_size, number_color)
+	
+	#endregion
