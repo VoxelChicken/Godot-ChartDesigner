@@ -22,32 +22,47 @@ enum ChartType{
 
 # The line(s) with '##' in the beginning means that they show up in the docs for this class.
 
+#region Exported Variables
+
+## The general values like Type, Values.
+@export_category("General")
+
 ## This exported enum gives you a drop-down menu containing different chart types.
 @export var type: ChartType
-
-
-## This group holds the settings for the LineGraph and BarChart.
-@export_group("LineChart & BarChart")
 
 ## The 'values' array is the array for the values displayed on the y axis in the Graph.
 ## It is also exported to the inspector on the right side of the screen (default setting). When you first get the add-on, there aren't any valuables set to this array, so you have to enter AT LEAST 2 values.
 @export var values: PackedFloat64Array
 
+
+
+# The configuration for the main lines and bars.
+@export_category("Lines / Bars")
+
 ## With this color, you can choose which color you want the line or columns (bars) to have.
 @export var line_color: Color = Color.RED
-## With this color you can choose your desired width of the x and y line's width. Setting it to -1 makes the line as thin as possible, in some cases, even less than 1 pixel wide.
-@export var x_y_lines_color: Color = Color.BLACK
 
 ## With this color you can choose your desired width of the line width. Setting it to -1 makes the line as thin as possible, in some cases, even less than 1 pixel wide.
 @export var line_width: float = 5
-## This variable is the width of the background lines that indicate the x and y axes.
-@export var x_y_lines_width: float = 10
 
 ## With this variable (originally intended for bar charts, however you can use this for line graphs just the same), you can define the distance between the first and last bar (column) to the edge (y axis line).
 @export var distance_to_y: float
 
-## This is the antialiasing [code] bool [/code]. It's also exported to the inspector. The antialiasing makes the pixelated lines smooth if '[code] True [/code]' ('On').
-@export var antialiasing: bool = true
+
+
+## The category for the helper lines that go across the x axis horizontally.
+@export_category("X Y Axes-Lines")
+
+## With this color you can choose your desired width of the x and y line's width. Setting it to -1 makes the line as thin as possible, in some cases, even less than 1 pixel wide.
+@export var x_y_lines_color: Color = Color.BLACK
+
+## This variable is the width of the background lines that indicate the x and y axes.
+@export var x_y_lines_width: float = 10
+
+
+
+## The category for the numbers on the sides of the ChartDesigner.
+@export_category("Number Labels")
 
 ## When this is on, numbers will appear on the edges of the LineGraph and BarChart.
 @export var number_labels: bool = true
@@ -58,8 +73,15 @@ enum ChartType{
 ## Choose the font color of the numbers on the edges of the LineGraph or BarChart.
 @export var number_color: Color = Color.BLACK
 
+## With this variable, you can adjust the helper numbers on the left side of the LineGraph or BarChart.
+@export var number_adjustment: float = 60
+
+
+
+## Category for the Helper Lines.
+@export_category("Helper Lines")
+
 ## This variable lets you choose if you want helper lines, so the close to invisible lines in the LineGraph, indicating where values roughly are.
-## The only value that won't be accepted is
 @export var helper_line_amount: int
 
 ## Choose your color for the helper lines.
@@ -68,14 +90,18 @@ enum ChartType{
 ## Choose your width for the helper_lines.
 @export var helper_line_width: float = 2.0
 
-## With this variable, you can adjust the helper numbers on the left side of the LineGraph or BarChart.
-@export var helper_number_adjustment: float = 60
 
-## Antialiasing for the helper lines.
-@export var helper_line_antialiasing: bool = true
+
+## Extras.
+@export_category("Miscellaneous")
 
 ## The color for the background of the LineGraph or BarChart. If you don't like the background, just set it to completely transparent (#00000000).
 @export var background_color: Color = Color.TRANSPARENT
+
+## This is the antialiasing [code] bool [/code]. It's also exported to the inspector. The antialiasing makes the pixelated lines smooth if '[code] True [/code]' ('On').
+@export var antialiasing: bool = true
+
+#endregion Exported Variables
 
 ## This method ([code]set_values[/code]) replaces the current values with new ones. It can be called when a function is pressed, like:
 ## 
@@ -83,6 +109,7 @@ enum ChartType{
 ## func _on_button_pressed() -> void:
 ## 	set_values([4, 2, 5, 1])
 ## [/codeblock]
+
 func set_values(new_values: PackedFloat64Array) -> void:
 	values = new_values
 	queue_redraw()
@@ -90,7 +117,14 @@ func set_values(new_values: PackedFloat64Array) -> void:
 func _init() -> void:
 	resized.connect(queue_redraw)
 
+func is_int(num): # Needed for later calculations.
+	if fmod(num, 1) == 0:
+		return int(num)
+	else:
+		return num
+
 func _draw() -> void:
+	#region Error Handling
 	if values.is_empty():
 		push_warning(
 		"Not enough values entered! If you entered none, please add at least two!"
@@ -102,7 +136,9 @@ func _draw() -> void:
 		"Not enough values entered! If you merely typed in one single value, please fix it and make at least two out of it."
 		) # Error handling. if there is only one value set, this message tells you.
 		return
-		
+	#endregion Error Handling
+	
+	#region Function Variables
 	var total_point_count: int = len(values)
 	
 	var x_size := get_rect().size.x
@@ -123,7 +159,9 @@ func _draw() -> void:
 	vector2_array.resize(total_point_count) # Makes the 'vector2_array' as big as the 'values' array.
 	
 	var helper_line_y_val: float # Helps the creation of the y lines by assigning this to 'max_val / 3'
+	#endregion Function Variables
 	
+	#region Min/Max Calculation
 	min_val = values[0] # This is for the iteration of the array to work well. This makes the 'min_val' NOT be 0.
 	for i in values.size():
 		var value := values[i]
@@ -134,6 +172,7 @@ func _draw() -> void:
 			min_val = value
 			min_val_index = i
 		# The for loop above cycles through the array 'values' and assigns 'min_val' and 'max_val' accordingly. (Declaration of the variables in the code above)
+	#endregion Min/Max Calculation
 	
 	draw_rect(Rect2(Vector2(0, 0), Vector2(x_size, y_size)), background_color, true, -1, false) # Draws the background of the LineGraph and BarChart.
 	
@@ -187,7 +226,7 @@ func _draw() -> void:
 			draw_line(
 				Vector2(offset, i * (y_size / helper_line_amount)),
 				Vector2(x_size, i * (y_size / helper_line_amount)),
-				helper_line_color, helper_line_width, helper_line_antialiasing
+				helper_line_color, helper_line_width, antialiasing
 			)
 	elif helper_line_amount == 0:
 		pass
@@ -202,10 +241,10 @@ func _draw() -> void:
 			draw_string(
 				default_font, # Font
 				Vector2(
-					text_size_single_liner.x - helper_number_adjustment,
+					text_size_single_liner.x - number_adjustment,
 					float(y_size) - float(j) * (float(y_size) / float(helper_line_amount)) + (text_size_single_liner.y / 4.0)
 				), # Position
-				str((max_val / helper_line_amount * j)), # Contains [String]
+				str((is_int(max_val / helper_line_amount * j))), # Contains [String]
 				HORIZONTAL_ALIGNMENT_CENTER, # Alignment
 				-1, # Width
 				number_font_size, # Font Size
